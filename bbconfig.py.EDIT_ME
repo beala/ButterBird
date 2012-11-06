@@ -1,0 +1,18 @@
+# Consumer key and secret for butterbird.
+consumer_key=""
+consumer_sec=""
+
+# Access key and sec for main account. Use get_access_token script to get these.
+access_key=""
+access_sec=""
+
+# For queue account. Use get_access_token script to get these.
+ret_access_key=""
+ret_access_sec=""
+
+# Number of seconds between new tweet checks.
+check_interval=3600 # 1 hour
+
+test_mode=False
+
+# When done, rename this to 'bbconfig.py'
