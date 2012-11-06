@@ -10,8 +10,11 @@ access_sec=""
 ret_access_key=""
 ret_access_sec=""
 
-# Number of seconds between new tweet checks.
-check_interval=3600 # 1 hour
+# Number of seconds between posts to the main account.
+tweet_interval=3600 # 1 hour
+
+# Number of seconds between checking the queue for new tweets.
+check_interval=60 * 5
 
 test_mode=False
 

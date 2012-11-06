@@ -33,7 +33,7 @@ class Tweeter(object):
     def run(self):
         """Get a tweet from the queue, post it to the main account."""
         while True:
-            while not (8 <= time.localtime().tm_hour < 22):
+            while not (9 <= time.localtime().tm_hour < 22):
                 # Sleep at night.
                 time.sleep(60 * 5)
             tweet, succCallback = self.retriever.switch()
@@ -85,5 +85,5 @@ if __name__ == "__main__":
             consumer_key=bbconfig.consumer_key,
             access_token_key=bbconfig.ret_access_key,
             access_token_secret=bbconfig.ret_access_sec)
-    retriever_cont = continulet(Retriever(retriever_api, 5*60).retrieve_tweet)
-    Tweeter(tweeter_api, retriever_cont, bbconfig.check_interval, True).run()
+    retriever_cont = continulet(Retriever(retriever_api, bbconfig.check_interval, bbconfig.test_mode).retrieve_tweet)
+    Tweeter(tweeter_api, retriever_cont, bbconfig.tweet_interval, bbconfig.test_mode).run()
