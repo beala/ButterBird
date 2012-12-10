@@ -1,21 +1,20 @@
 # ButterBird
-A PyPy script for queuing tweets.
+A Python script for queuing tweets.
 
 How does it work? It reads tweets from a queue account, and posts them to a main account at a configurable interval. After the tweet has been posted, it is deleted from the queue account.
 
 ## Setup
 
-Install [PyPy](http://pypy.org) and [python-twitter](http://code.google.com/p/python-twitter/):
+Install [python-twitter](http://code.google.com/p/python-twitter/):
 
 ```
-brew install pypy
 sudo pip install python-twitter
 ```
 
 1. Make a new application on http://dev.twitter.com
 2. Use the `get_access_token.py` scripts to approve the app on your queue and main accounts, and get the access key and secrets for those accounts.
 3. Add those values to `bbconfig.py`.
-4. `pypy butterbird.py`
+4. `python butterbird.py`
 
 ## License
 
