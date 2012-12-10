@@ -2,8 +2,6 @@ import twitter
 import time
 import bbconfig
 
-from _continuation import continulet
-
 def wrap_api(api):
     """Wraps calls to the Twitter API, and checks how many hits are remaining.
        Sleeps for 10 minutes if there are < 10 hits.
@@ -36,7 +34,7 @@ class Tweeter(object):
             while not (9 <= time.localtime().tm_hour < 22):
                 # Sleep at night.
                 time.sleep(60 * 5)
-            tweet, succCallback = self.retriever.switch()
+            tweet, succCallback = self.retriever.next()
             self.post_update(tweet)
             succCallback()
             time.sleep(self.post_interval)
@@ -58,7 +56,7 @@ class Retriever(object):
         self.api.VerifyCredentials()
         self.apiCaller = wrap_api(self.api)
 
-    def retrieve_tweet(self, cont):
+    def retrieve_tweet(self):
         while True:
             timeline = self.get_timeline()
             while len(timeline) == 0:
@@ -69,7 +67,7 @@ class Retriever(object):
                 succCallback = lambda : self.apiCaller(self.api.DestroyStatus, tweet.id)
             else:
                 succCallback = lambda : None
-            cont.switch((tweet, succCallback))
+            yield tweet, succCallback
 
     def get_timeline(self):
         return self.apiCaller(self.api.GetUserTimeline)
@@ -85,5 +83,5 @@ if __name__ == "__main__":
             consumer_key=bbconfig.consumer_key,
             access_token_key=bbconfig.ret_access_key,
             access_token_secret=bbconfig.ret_access_sec)
-    retriever_cont = continulet(Retriever(retriever_api, bbconfig.check_interval, bbconfig.test_mode).retrieve_tweet)
+    retriever_cont = Retriever(retriever_api, bbconfig.check_interval, bbconfig.test_mode).retrieve_tweet()
     Tweeter(tweeter_api, retriever_cont, bbconfig.tweet_interval, bbconfig.test_mode).run()
