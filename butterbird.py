@@ -4,11 +4,14 @@ import bbconfig
 
 def wrap_api(api):
     """Wraps calls to the Twitter API, and checks how many hits are remaining.
-       Sleeps for 10 minutes if there are < 10 hits.
+       Backs off exponentially if there are < 10 hits.
+       ((*args, **kwargs) => *) => (*args, *kwargs) => *
     """
     def wrap_call(api_call, *args, **kwargs):
+        backoff = 5
         while api.GetRateLimitStatus()["remaining_hits"] < 10:
-            sleep(10 * 60)
+            sleep(backoff * 60)
+            backoff *= 2
         return api_call(*args, **kwargs)
     return wrap_call
 
@@ -28,18 +31,27 @@ class Tweeter(object):
         self.api.VerifyCredentials()
         self.apiCaller = wrap_api(self.api)
 
+    def timeToTweet(self):
+        """() => Boolean"""
+        return (9 <= time.localtime().tm_hour < 22)
+
     def run(self):
-        """Get a tweet from the queue, post it to the main account."""
+        """Get a tweet from the queue, post it to the main account.
+           () => None
+        """
         while True:
-            while not (9 <= time.localtime().tm_hour < 22):
+            while not self.timeToTweet():
                 # Sleep at night.
                 time.sleep(60 * 5)
             tweet, succCallback = self.retriever.next()
-            self.post_update(tweet)
-            succCallback()
-            time.sleep(self.post_interval)
+            # Need to test again in case retriever has been spinning all night.
+            if self.timeToTweet():
+                self.post_update(tweet)
+                succCallback()
+                time.sleep(self.post_interval)
 
     def post_update(self, tweet):
+        """(String) => None"""
         if self.test_mode:
             print "Test tweet: " + tweet.text
         else:
@@ -57,6 +69,10 @@ class Retriever(object):
         self.apiCaller = wrap_api(self.api)
 
     def retrieve_tweet(self):
+        """Generator that returns a tweet from the queue account and a callback
+           which deletes the tweet. Spins until a tweet has been retrieved.
+           () => String, (() => *)
+        """
         while True:
             timeline = self.get_timeline()
             while len(timeline) == 0:
@@ -70,6 +86,8 @@ class Retriever(object):
             yield tweet, succCallback
 
     def get_timeline(self):
+        """() => List[Tweets]
+        """
         return self.apiCaller(self.api.GetUserTimeline)
 
 if __name__ == "__main__":
